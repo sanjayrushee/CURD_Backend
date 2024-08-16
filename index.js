@@ -78,7 +78,7 @@ try {
 
 //login
 app.post('/login/', async (request, response) => {
-    const { email,username, password } = request.body;
+    const { email, password } = request.body;
     
     try {
       const userDbDetails = await userModel.findOne({ email });
@@ -87,7 +87,7 @@ app.post('/login/', async (request, response) => {
         const isPasswordCorrect = await bcrypt.compare(password, userDbDetails.password);
   
         if (isPasswordCorrect) {
-          const payload = { username, userId: userDbDetails._id };
+          const payload = { email, userId: userDbDetails._id };
           const jwtToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '10d' });
           response.send({ jwtToken });
         } else {
