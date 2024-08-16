@@ -1,5 +1,5 @@
-import {userModel,Event} from './user.js';
-import express from 'express';
+import {userModel,noteModel} from './user.js';
+import express, { request, response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
@@ -46,72 +46,8 @@ const authentication = (request, response, next) => {
     }
   };
 
-  //add events
-  app.post('/events', async (req, res) => {
-    try {
-      const { title, description, date, location, organizerId } = req.body;
-  
-      const newEvent = new Event({
-        title,
-        description,
-        date,
-        location,
-        organizerId
-      });
-  
-      await newEvent.save();
-      res.status(201).json(newEvent);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  });
 
-//show events
-  app.get('/getevents', (req, res) => {
-    Event.find()
-      .then(events => res.json(events))
-      .catch(err => {
-        console.error("Error fetching users", err);
-        res.status(500).json({ error: "Failed to fetch users" });
-      });
-  });
-
-
-//
-app.delete('/events/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const deletedEvent = await Event.findByIdAndDelete(id);
-
-    if (!deletedEvent) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    res.json({ message: 'Event deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update an event
-app.put('/events/:id', async (req, res) => {
-  try {
-    const { id } = req.params; 
-    const updates = req.body; 
-
-    const updatedEvent = await Event.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
-
-    if (!updatedEvent) {
-      return res.status(404).json({ error: 'Event not found' });
-    }
-
-    res.json(updatedEvent);
-  } catch (error) {
-    res.status(400).json({ error: error.message }); 
-  }
-});
-
+//register
 app.post('/register/', async (request, response) => {
 const { email,username, password } = request.body;
 
@@ -141,7 +77,6 @@ try {
 });
 
 //login
-
 app.post('/login/', async (request, response) => {
     const { email,username, password } = request.body;
     
@@ -166,5 +101,109 @@ app.post('/login/', async (request, response) => {
       response.status(500).send('Internal server error');
     }
   });
+
+  //Add notes
+app.post('/addnotes', authentication, async (request, response) => {
+    const { title, description } = request.body;
+    try {
+        const user = await userModel.findById(request.userId);
+        
+        if (!user) {
+            return response.status(404).send('User not found');
+        }
+
+        // Create a new note
+        const newNote = new noteModel({
+            title,
+            description,
+            date: new Date(),
+            userId: request.userId
+        });
+
+        //user.notes.push(newNote); need if we use nested document 
+        await newNote.save();
+
+        response.send('Note added successfully');
+    } catch (error) {
+        console.error('Error adding note:', error);
+        response.status(500).send('Internal server error');
+    }
+});
+
+//get notes
+app.get('/notes', authentication,async (request, response) => {
+ 
+  try{
+    const userId = request.userId
+    // const user = await userModel.findById(userId);
+
+    const notes = await noteModel.find({userId:userId});
+
+    if (!notes || notes.length === 0) {
+      return response.status(404).send('No notes found for this user');
+  }
+
+  response.send(notes);
+
+  }
+ catch (error) {
+  console.error('Error fetching notes:', error);
+  response.status(500).send('Internal server error');
+}
+
+});
+
+//update
+app.put('/notes/:noteId',authentication,async (request, response) =>{
+  const {noteId} = request.params;
+  const userId = request.userId;
+  const {title,description} = request.body;
+
+  try{
+    const updateNote = await noteModel.findOneAndUpdate(
+      { _id: noteId, userId: userId }, 
+      { 
+          $set: { 
+              "title": title,        
+              "description": description ,
+              updatedAt: Date.now()
+          } 
+        },
+          { new: true }
+      );
+
+      if (!updateNote) {
+          return response.status(404).send('Note not found or user not authorized');
+          }
+    response.send(updateNote);  
+  }
+  catch (error) {
+    console.error('Error updating note:', error);
+    response.status(500).send('Internal server error');
+}
+})
+
+//delete 
+app.delete('/notes/:noteId', authentication, async (request,response) => {
+
+  const {noteId} = request.params;
+  const userId = request.userId;
+
+  try{
+    const deletedNote = await noteModel.findOneAndDelete({
+      _id: noteId, userId: userId
+    });
+
+    if (!deletedNote){
+      return response.status(404).send("Note not Found")
+    }
+    response.send({message:"Noted Deleted"})
+  }
+  catch(ero) {
+    console.log("error",ero)
+    response.status(500).send("Server Error")
+
+  }
+})
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
