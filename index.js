@@ -78,29 +78,29 @@ try {
 
 //login
 app.post('/login/', async (request, response) => {
-    const { email, password } = request.body;
-    
-    try {
-      const userDbDetails = await userModel.findOne({ email });
-  
-      if (userDbDetails) {
-        const isPasswordCorrect = await bcrypt.compare(password, userDbDetails.password);
-  
-        if (isPasswordCorrect) {
-          const payload = { email, userId: userDbDetails._id };
-          const jwtToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '10d' });
-          response.send({ jwtToken });
-        } else {
-          response.status(400).send('Invalid password');
-        }
+  const { email, password } = request.body;
+
+  try {
+    const userDbDetails = await userModel.findOne({ email });
+
+    if (userDbDetails) {
+      const isPasswordCorrect = await bcrypt.compare(password, userDbDetails.password);
+
+      if (isPasswordCorrect) {
+        const payload = { email, userId: userDbDetails._id };
+        const jwtToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '10d' });
+        response.json({ jwtToken });
       } else {
-        response.status(400).send('Invalid user');
+        response.status(400).json({ error_msg: 'Invalid password' });
       }
-    } catch (error) {
-      console.error('Error during login:', error);
-      response.status(500).send('Internal server error');
+    } else {
+      response.status(400).json({ error_msg: 'Invalid user' });
     }
-  });
+  } catch (error) {
+    console.error('Error during login:', error);
+    response.status(500).json({ error_msg: 'Internal server error' });
+  }
+});
 
   //Add notes
 app.post('/addnotes', authentication, async (request, response) => {
