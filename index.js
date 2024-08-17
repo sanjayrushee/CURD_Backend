@@ -33,7 +33,7 @@ const authentication = (request, response, next) => {
       jwt.verify(jwtToken, SECRET_KEY, (error, payload) => {
         if (error) {
           response.status(401);
-          response.send("Invalid JWT Token");
+          response.json("Invalid JWT Token");
         } else {
           request.username = payload.username;
           request.userId = payload.userId;
@@ -42,7 +42,7 @@ const authentication = (request, response, next) => {
       });
     } else {
       response.status(401);
-      response.send("Invalid JWT Token");
+      response.json("Invalid JWT Token");
     }
   };
 
@@ -55,10 +55,10 @@ try {
 
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
-    return response.status(400).send('User already exists');
+    return response.status(400).json('User already exists');
     }
     if (password.length < 6) {
-    return response.status(400).send('Password is too short');
+    return response.status(400).json('Password is too short');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new userModel({
@@ -68,11 +68,11 @@ try {
    
     });
     await newUser.save();
-    response.send('User created successfully');
+    response.json('User created successfully');
 
 } catch (error) {
     console.error('Error during registration:', error);
-    response.status(500).send('Internal server error');
+    response.status(500).json('Internal server error');
 }
 });
 
