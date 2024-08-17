@@ -11,7 +11,8 @@ const notesSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
     email : { type:String , required: true},
-    password : String,
+    username:{type:String ,required:true , maxLength:15},
+    password : { type:String , required: true},
    // notes: { type: [notesSchema], default: [] } if the use of  nested document only
 
 });

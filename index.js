@@ -93,14 +93,14 @@ app.post('/login/', async (request, response) => {
         const jwtToken = jwt.sign(payload, SECRET_KEY, { expiresIn: '10d' });
         response.json({ jwtToken });
       } else {
-        response.status(400).json({ error_msg: 'Invalid password' });
+        response.status(400).json({ error: 'Invalid password' });
       }
     } else {
-      response.status(400).json({ error_msg: 'Invalid user' });
+      response.status(400).json({ error: 'Invalid user' });
     }
   } catch (error) {
     console.error('Error during login:', error);
-    response.status(500).json({ error_msg: 'Internal server error' });
+    response.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -111,7 +111,7 @@ app.post('/addnotes', authentication, async (request, response) => {
         const user = await userModel.findById(request.userId);
         
         if (!user) {
-            return response.status(404).send('User not found');
+            return response.status(404).json({error: 'User not found'});
         }
 
         // Create a new note
@@ -128,7 +128,7 @@ app.post('/addnotes', authentication, async (request, response) => {
         response.send('Note added successfully');
     } catch (error) {
         console.error('Error adding note:', error);
-        response.status(500).send('Internal server error');
+        response.status(500).json({error:'Internal server error'});
     }
 });
 
@@ -142,7 +142,7 @@ app.get('/notes', authentication,async (request, response) => {
     const notes = await noteModel.find({userId:userId});
 
     if (!notes || notes.length === 0) {
-      return response.status(404).send('No notes found for this user');
+      return response.status(404).json({error:'No notes found for this user'});
   }
 
   response.send(notes);
@@ -150,7 +150,7 @@ app.get('/notes', authentication,async (request, response) => {
   }
  catch (error) {
   console.error('Error fetching notes:', error);
-  response.status(500).send('Internal server error');
+  response.status(500).json({error:'Internal server error'});
 }
 
 });
@@ -175,13 +175,13 @@ app.put('/notes/:noteId',authentication,async (request, response) =>{
       );
 
       if (!updateNote) {
-          return response.status(404).send('Note not found or user not authorized');
+          return response.status(404).json({erorr:'Note not found or user not authorized'});
           }
     response.send(updateNote);  
   }
   catch (error) {
     console.error('Error updating note:', error);
-    response.status(500).send('Internal server error');
+    response.status(500).json({error:'Internal server error'});
 }
 })
 
@@ -197,13 +197,13 @@ app.delete('/notes/:noteId', authentication, async (request,response) => {
     });
 
     if (!deletedNote){
-      return response.status(404).send("Note not Found")
+      return response.status(404).json({error:"Note not Found"})
     }
     response.send({message:"Noted Deleted"})
   }
   catch(ero) {
     console.log("error",ero)
-    response.status(500).send("Server Error")
+    response.status(500).json({error:'Internal server error'});
 
   }
 })
