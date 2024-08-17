@@ -47,34 +47,36 @@ const authentication = (request, response, next) => {
   };
 
 
-//register
-app.post('/register/', async (request, response) => {
-const { email,username, password } = request.body;
+  app.post('/register/', async (request, response) => {
+    const { email, username, password } = request.body;
 
-try {
+    try {
+        const existingUser = await userModel.findOne({ email });
+        if (existingUser) {
+            return response.status(400).json({ error: 'User already exists' });
+        }
 
-    const existingUser = await userModel.findOne({ email });
-    if (existingUser) {
-    return response.status(400).json('User already exists');
+        if (password.length < 6) {
+            return response.status(400).json({ error: 'Password is too short' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = new userModel({
+            email,
+            username,
+            password: hashedPassword,
+        });
+        await newUser.save();
+
+        response.status(201).json({ message: 'User created successfully' });
+
+    } catch (error) {
+        console.error('Error during registration:', error);
+        response.status(500).json({ error: 'Internal server error' });
     }
-    if (password.length < 6) {
-    return response.status(400).json('Password is too short');
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new userModel({
-    email,
-    username,
-    password: hashedPassword,
-   
-    });
-    await newUser.save();
-    response.json('User created successfully');
-
-} catch (error) {
-    console.error('Error during registration:', error);
-    response.status(500).json('Internal server error');
-}
 });
+
 
 //login
 app.post('/login/', async (request, response) => {
