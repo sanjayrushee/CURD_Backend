@@ -1,4 +1,4 @@
-import {userModel,noteModel} from './user.js';
+import {userModel,noteModel,deletedModel} from './databaseSchema.js';
 import express, { request, response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -186,26 +186,41 @@ app.put('/notes/:noteId',authentication,async (request, response) =>{
 })
 
 //delete 
-app.delete('/notes/:noteId', authentication, async (request,response) => {
-
-  const {noteId} = request.params;
+app.delete('/notes/:noteId', authentication, async (request, response) => {
+  const { noteId } = request.params;
   const userId = request.userId;
+  console.log(userId,noteId)
 
-  try{
-    const deletedNote = await noteModel.findOneAndDelete({
-      _id: noteId, userId: userId
-    });
-
-    if (!deletedNote){
-      return response.status(404).json({error:"Note not Found"})
-    }
-    response.send({message:"Noted Deleted"})
+  if (!mongoose.isValidObjectId(noteId)) {
+      return response.status(400).json({ error: 'Invalid note ID' });
   }
-  catch(ero) {
-    console.log("error",ero)
-    response.status(500).json({error:'Internal server error'});
 
+  try {
+      const note = await noteModel.findOne({
+          _id: noteId, 
+          userId: userId
+      });
+
+      console.log(note)
+
+      if (!note) {
+          return response.status(404).json({ error: "Note not found" });
+      }
+
+      const deldata = await deletedModel.create(note.toObject());
+
+      if (deldata) {
+          await noteModel.deleteOne({ _id: noteId });  // Again, use noteId directly
+          response.status(200).json({ message: 'Document moved to delete collection' });
+      } else {
+          response.status(500).json({ message: 'Failed to insert into delete collection' });
+      }
+  } catch (error) {
+      console.log("Error:", error);
+      response.status(500).json({ error: 'Internal server error' });
   }
-})
+});
+
+
 
 app.listen(port, () => console.log(`Server running on port ${port}`));

@@ -17,7 +17,16 @@ const userSchema = new mongoose.Schema({
 
 });
 
+
+const deletedNoteSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'users' }, 
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  deletedAt: { type: Date, default: Date.now } 
+});
+
+const deletedModel = mongoose.model('delmodels',deletedNoteSchema);
 const userModel = mongoose.model('users', userSchema);
 const noteModel = mongoose.model('notes', notesSchema);
 
-export {userModel,noteModel};
+export {userModel,noteModel,deletedModel};
