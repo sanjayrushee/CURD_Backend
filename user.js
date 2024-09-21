@@ -17,24 +17,7 @@ const userSchema = new mongoose.Schema({
 
 });
 
-const deletedNoteSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  content: { type: String, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
-  deletedAt: { type: Date, default: Date.now } 
-});
-
-const archivedNoteSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  content: { type: String, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
-  archivedAt: { type: Date, default: Date.now } 
-});
-
-
-const ArchivedNote = mongoose.model('ArchivedNote', archivedNoteSchema);
-const DeletedNote = mongoose.model('DeletedNote', deletedNoteSchema);
 const userModel = mongoose.model('users', userSchema);
 const noteModel = mongoose.model('notes', notesSchema);
 
-export {userModel,noteModel,DeletedNote,ArchivedNote};
+export {userModel,noteModel};

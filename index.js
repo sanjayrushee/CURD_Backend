@@ -1,4 +1,4 @@
-import {userModel,ArchivedNote,noteModel,DeletedNote} from './user.js';
+import {userModel,noteModel} from './user.js';
 import express, { request, response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -41,7 +41,8 @@ const authentication = (request, response, next) => {
         }
       });
     } else {
-      response.status(401).json({error: "Invalid JWT Token"});
+      response.status(401);
+      response.json("Invalid JWT Token");
     }
   };
 
@@ -123,6 +124,7 @@ app.post('/addnotes', authentication, async (request, response) => {
 
         //user.notes.push(newNote); need if we use nested document 
         await newNote.save();
+
         response.send('Note added successfully');
     } catch (error) {
         console.error('Error adding note:', error);
@@ -189,53 +191,21 @@ app.delete('/notes/:noteId', authentication, async (request,response) => {
   const {noteId} = request.params;
   const userId = request.userId;
 
-  try {
-    const noteToDelete = await noteModel.findOne({ _id: noteId, userId: userId });
+  try{
+    const deletedNote = await noteModel.findOneAndDelete({
+      _id: noteId, userId: userId
+    });
 
-    if (!noteToDelete) {
-        return response.status(404).json({ error: "Note not Found" });
+    if (!deletedNote){
+      return response.status(404).json({error:"Note not Found"})
     }
+    response.send({message:"Noted Deleted"})
+  }
+  catch(ero) {
+    console.log("error",ero)
+    response.status(500).json({error:'Internal server error'});
 
-    await DeletedNote.create(noteToDelete.toObject()); 
-
-    await noteModel.deleteOne({ _id: noteId });
-
-    response.send({ message: "Note Deleted" });
-} catch (ero) {
-    console.log("error", ero);
-    response.status(500).json({ error: 'Internal server error' });
-}
+  }
 })
-
-
-//archive
-app.post('/notes/:noteId/archive', authentication, async (request, response) => {
-    const { noteId } = request.params;
-    const userId = request.userId;
-
-    try {
-        // Step 1: Find the note to be archived
-        const noteToArchive = await noteModel.findOne({ _id: noteId, userId: userId });
-
-        if (!noteToArchive) {
-            return response.status(404).json({ error: "Note not Found" });
-        }
-
-        // Step 2: Move the note to the archivedNotes collection
-        const archivedNoteData = noteToArchive.toObject();
-        archivedNoteData.archivedAt = new Date(); // Add archivedAt field
-
-        await ArchivedNote.create(archivedNoteData);
-
-        // Step 3: Delete the note from the original collection (optional)
-        await noteModel.deleteOne({ _id: noteId });
-
-        response.send({ message: "Note Archived" });
-    } catch (ero) {
-        console.log("error", ero);
-        response.status(500).json({ error: 'Internal server error' });
-    }
-});
-
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
