@@ -10,9 +10,13 @@ const notesSchema = new mongoose.Schema({
 });
 
 const userSchema = new mongoose.Schema({
-    email : { type:String , required: true},
+    email : { type:String , required: true, unique: true,},
     username:{type:String ,required:true , maxLength:15},
     password : { type:String , required: true},
+    resetCode: {
+      code: { type: String }, 
+      expires: { type: Date }, 
+  },
    // notes: { type: [notesSchema], default: [] } if the use of  nested document only
 
 });
@@ -35,9 +39,9 @@ const ArchiveSchema = new mongoose.Schema({
  
 });
 
-const archiveModel = mongoose.model('archives',ArchiveSchema)
-const deletedModel = mongoose.model('delmodels',deletedNoteSchema);
-const userModel = mongoose.model('users', userSchema);
-const noteModel = mongoose.model('notes', notesSchema);
+const archiveModel = mongoose.model('ArchivesNotes',ArchiveSchema)
+const deletedModel = mongoose.model('DeletedNotes',deletedNoteSchema);
+const userModel = mongoose.model('Users', userSchema);
+const noteModel = mongoose.model('Notes', notesSchema);
 
 export {userModel,noteModel,archiveModel,deletedModel};

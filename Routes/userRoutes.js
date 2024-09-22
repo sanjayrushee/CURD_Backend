@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import express from 'express'
 import { userModel } from '../Models/Schemas.js';
 import configs from '../Config/dotenvconfig.js';
+import { sendEmail,generateVerificationCode } from '../Services/email.js';
 
 const router = express.Router();
 
@@ -54,11 +55,90 @@ router.post('/register', async (request, response) => {
             password: hashedPassword,
         });
         await newUser.save();
-
-        response.status(201).json({ message: 'User created successfully' });
+        
+        const toEmail = email
+        const subject = "You're All Set! Welcome to M15 Notes";
+        const body = `
+              <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Welcome to M15 Notes</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333;">
+                    <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); padding: 20px;">
+                        <h1 style="color: #4A90E2;">Welcome to Our M15 Notes, ${username}</h1>
+                        <p style="line-height: 1.6;">Thank you for registering with us. We are excited to have you on board!</p>
+                        <p style="line-height: 1.6;">Your registration is now complete, and you can start exploring all the features for organizing and managing your notes.</p>
+                        <p style="line-height: 1.6;">If you have any questions or need assistance, feel free to reach out to our support team at <a href="mailto:mone5developer@gmail.com" style="color: #4A90E2; text-decoration: none;">mone5developer@gmail.com</a>.</p>
+                        <div style="margin-top: 20px; border-top: 1px solid #dddddd; padding-top: 10px; font-size: 0.9em; color: #777;">
+                            <p>Thank you,<br>M15 Notes Team</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                `;
+        await sendEmail(toEmail, subject, body);
+        response.status(201).json({ message: 'User created successfully and email sent' });
 
     } catch (error) {
-        console.error('Error during registration:', error);
+        console.error('Error during registration and send email', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+
+router.post('/reset-password-request', async (request, response) => {
+    const { email } = request.body;
+
+    try {
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return response.status(404).json({ error: 'User not found' });
+        }
+
+        const { username } = user;
+        // Generate a verification code
+        const verificationCode = generateVerificationCode();
+        const subject = 'Password Reset Request';
+        const body = `
+            <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Password Reset Request</title>
+                </head>
+                <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; color: #333;">
+                    <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); padding: 20px;">
+                        <h1 style="color: #4A90E2;">Password Reset Request</h1>
+                        <p style="line-height: 1.6;">Hello, ${username}</p>
+                        <p style="line-height: 1.6;">You requested a password reset for your account. Please use the following verification code to reset your password:</p>
+                        <h2 style="color: #4A90E2; text-align: center;">${verificationCode}</h2>
+                        <p style="line-height: 1.6;">This code is valid for 15 minutes. If you did not request this, please ignore this email.</p>
+                        <p style="line-height: 1.6;">If you have any questions or need assistance, feel free to reach out to our support team at <a href="mailto:mone5developer@gmail.com" style="color: #4A90E2; text-decoration: none;">mone5developer@gmail.com</a>.</p>
+                        <div style="margin-top: 20px; border-top: 1px solid #dddddd; padding-top: 10px; font-size: 0.9em; color: #777;">
+                            <p>Thank you,<br>Your Notes Team</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+
+        `;
+
+        await sendEmail(email, subject, body);
+
+        user.resetCode = {
+            code: verificationCode,
+            expires: Date.now() + 15 * 60 * 1000, // 15 minutes from now
+        };
+        await user.save();
+
+        response.status(200).json({ message: 'Verification code sent to your email' });
+    } catch (error) {
+        console.error('Error in password reset request:', error);
         response.status(500).json({ error: 'Internal server error' });
     }
 });

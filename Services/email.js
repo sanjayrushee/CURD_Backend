@@ -14,12 +14,12 @@ export const generateVerificationCode = () => {
     return Math.floor(100000 + Math.random() * 900000).toString(); 
 }
 
-export const sendVerificationEmail = async (toEmail, subject, body) => {
+export const sendEmail = async (toEmail, subject, body) => {
     const mailOptions = {
         from: configs.EMAIL_USERNAME,
         to: toEmail,
         subject: subject,
-        text: body,
+        html: body,
     };
 
     try {
