@@ -1,0 +1,95 @@
+###
+POST http://localhost:8000/authe/register
+Content-Type: application/json
+
+{
+    "email": "email id,
+    "username": "username",
+    "password": "yourpassword"
+}
+
+###
+POST http://localhost:8000/authe/login
+Content-Type: application/json
+
+{
+    "email": "email id,
+    "password": "newsecurepassword"
+}
+
+###
+POST http://localhost:8000/authe/reset-password-request
+Content-Type: application/json
+
+{
+    "email": "example@gmail.com"
+}
+
+###
+POST http://localhost:8000/authe/change-password
+Content-Type: application/json
+
+{
+    "email": "example@gmail.com",
+    "newPassword": "newsecurepassword"
+}
+
+###
+curl -X POST http://localhost:8000/authe/check-verification-code \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "email id,
+    "verificationCode": "000"
+  }'
+
+
+### Add a New Note
+POST http://localhost:8000/notes
+Content-Type: application/json
+Authorization: Bearer Token
+
+{
+    "title": "My New Note",
+    "description": "This is a description for the new note."
+}
+
+### Fetch All Notes
+GET http://localhost:8000/notes
+Authorization: Bearer Token
+
+### Fetch All del notes
+GET http://localhost:8000/notes/delnotes
+Authorization: Bearer Token
+
+
+### Fetch All archive notes
+GET http://localhost:8000/notes/archnotes
+Authorization: Bearer Token
+
+
+### Update a Note
+PUT http://localhost:8000/notes/noteid
+Content-Type: application/json
+Authorization: Bearer Token
+
+{
+    "title": "Updated Note Title",
+    "description": "Updated description content."
+}
+
+### Delete a Note
+DELETE http://localhost:8000/notes/noteid
+Authorization: Bearer Token
+
+### Recover Deleted Note
+POST http://localhost:8000/notes/noteid/recover
+Authorization: Bearer Token
+
+### Archive a Note
+PUT http://localhost:8000/notes/archive/noteid
+Authorization: Bearer Token
+
+
+### Recover Archived Note
+PUT http://localhost:8000/notes/archive-recover/noteid
+Authorization: Bearer Token
