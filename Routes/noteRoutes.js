@@ -1,6 +1,6 @@
 import express from 'express';
 import authentication from '../Middlewares/authentication.js';
-import { noteModel,deletedModel,archiveModel } from '../Models/Schemas.js';
+import { userModel,noteModel,deletedModel,archiveModel } from '../Models/Schemas.js';
 import mongoose from 'mongoose';
 
 const router = express.Router();
@@ -42,6 +42,33 @@ router.get('/', authentication, async (request, response) => {
         response.status(500).json({ error: 'Internal server error' });
     }
 });
+
+router.get('/delnotes', authentication, async (request, response) => {
+    try {
+        const notes = await deletedModel.find({ userId: request.userId });
+        if (!notes || notes.length === 0) {
+            return response.status(404).json({ error: 'No notes found for this user' });
+        }
+        response.status(200).json(notes);
+    } catch (error) {
+        console.error('Error fetching notes:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.get('/archnotes', authentication, async (request, response) => {
+    try {
+        const notes = await archiveModel.find({ userId: request.userId });
+        if (!notes || notes.length === 0) {
+            return response.status(404).json({ error: 'No notes found for this user' });
+        }
+        response.status(200).json(notes);
+    } catch (error) {
+        console.error('Error fetching notes:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 // Update note
 router.put('/:noteId', authentication, async (request, response) => {
@@ -129,7 +156,7 @@ router.post('/:noteId/recover', authentication, async (request, response) => {
 
 
 // ARchive note
-router.delete('ARchive/:noteId', authentication, async (request, response) => {
+router.delete('/archive/:noteId', authentication, async (request, response) => {
     const { noteId } = request.params;
     const userId = request.userId;
 
@@ -191,7 +218,7 @@ router.put('/archive/:noteId', authentication, async (request, response) => {
 
 
 // Recover archived note
-router.put('/recover/:noteId', authentication, async (request, response) => {
+router.put('/archive-recover/:noteId', authentication, async (request, response) => {
     const { noteId } = request.params;
     const userId = request.userId;
 

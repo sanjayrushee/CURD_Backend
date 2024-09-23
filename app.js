@@ -9,9 +9,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(configs.MONGO_URI)
-  .then(() => console.log("Connected to MongoDB"))
-  .catch(err => console.error("Failed to connect to MongoDB", err));
+const connectToDatabase = async () => {
+  try {
+    await mongoose.connect(configs.MONGO_URI);
+    console.log("Connected to MongoDB");
+  } catch (err) {
+    console.error("Failed to connect to MongoDB", err);
+  }
+};
+
+connectToDatabase();
 
 app.use('/authe', userRoutes);
 app.use('/notes',noteRoutes)
