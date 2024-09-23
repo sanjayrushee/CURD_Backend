@@ -55,7 +55,6 @@ router.post('/register', async (request, response) => {
             password: hashedPassword,
         });
         await newUser.save();
-        
         const toEmail = email
         const subject = "You're All Set! Welcome to M15 Notes";
         const body = `
@@ -100,7 +99,7 @@ router.post('/reset-password-request', async (request, response) => {
         }
 
         const { username } = user;
-        // Generate a verification code
+
         const verificationCode = generateVerificationCode();
         const subject = 'Password Reset Request';
         const body = `
@@ -132,7 +131,7 @@ router.post('/reset-password-request', async (request, response) => {
 
         user.resetCode = {
             code: verificationCode,
-            expires: Date.now() + 15 * 60 * 1000, // 15 minutes from now
+            expires: Date.now() + 25 * 60 * 1000, 
         };
         await user.save();
 
@@ -142,5 +141,28 @@ router.post('/reset-password-request', async (request, response) => {
         response.status(500).json({ error: 'Internal server error' });
     }
 });
+
+
+router.post('/change-password', async (request, response) => {
+    const { email, newPassword } = request.body;
+
+    try {
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return response.status(404).json({ error: 'User not found' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.resetCode = undefined;
+        await user.save();
+
+        response.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Error changing password:', error);
+        response.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 export default router;
