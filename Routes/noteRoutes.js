@@ -165,14 +165,14 @@ router.delete('/archive/:noteId', authentication, async (request, response) => {
     }
 
     try {
-        const note = await noteModel.findOne({ _id: noteId, userId: userId });
+        const note = await archiveModel.findOne({ _id: noteId, userId: userId });
         if (!note) {
             return response.status(404).json({ error: "Note not found" });
         }
 
         const deldata = await deletedModel.create(note.toObject());
         if (deldata) {
-            await noteModel.deleteOne({ _id: noteId });
+            await archiveModel.deleteOne({ _id: noteId });
             response.status(200).json({ message: 'Document moved to delete collection' });
         } else {
             response.status(500).json({ message: 'Failed to insert into delete collection' });
