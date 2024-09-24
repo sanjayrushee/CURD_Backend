@@ -78,8 +78,8 @@ Authorization: Bearer Token
 }
 
 ### Delete a Note
-DELETE http://localhost:8000/notes/noteid
-Authorization: Bearer Token
+DELETE http://localhost:8000/notes/66f2634c160877ef6829edc6
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNpdmFzYW5rYXIuY2NjQGdtYWlsLmNvbSIsInVzZXJJZCI6IjY2ZjI0NzFjMTg0M2U5ZmIyZmQzYjVjOSIsImlhdCI6MTcyNzE2MDE0MSwiZXhwIjoxNzI4MDI0MTQxfQ.AGMSBFgz4tgsq2PIjJ6KjtBXag2X0lbD_VPI5wjg_
 
 ### Recover Deleted Note
 POST http://localhost:8000/notes/noteid/recover
