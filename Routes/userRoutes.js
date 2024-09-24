@@ -18,7 +18,7 @@ router.post('/login/',async (request, response) => {
             const isPasswordCorrect = await bcrypt.compare(password, userDbDetails.password);
 
             if (isPasswordCorrect) {
-                const payload = { email, userId: userDbDetails._id };
+                const payload = { email, username: userDbDetails.username, userId: userDbDetails._id };
                 const jwtToken = jwt.sign(payload, configs.SECRET_KEY, { expiresIn: '10d' });
                 console.log(jwtToken)
                 response.json({ jwtToken });
