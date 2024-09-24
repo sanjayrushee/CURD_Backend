@@ -24,8 +24,8 @@ const userSchema = new mongoose.Schema({
 
 const deletedNoteSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'users' }, 
-  title: { type: String, required: true },
-  description: { type: String, required: true },
+  title: { type: String},
+  description: { type: String },
   date: { type: Date, default: Date.now } ,
   deletedAt: { type: Date, default: Date.now, expires: '30d' } 
 });
